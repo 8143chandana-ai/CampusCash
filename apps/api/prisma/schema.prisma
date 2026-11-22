@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  passwordHash String
+  currency     String         @default("INR")
+  createdAt    DateTime       @default(now())
+  transactions Transaction[]
+  budgets      Budget[]
+  goals        SavingsGoal[]
+  scholarships Scholarship[]
+  jobs         Job[]
+}
+
+model Transaction {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  amount    Int
+  category  String
+  note      String   @default("")
+  date      DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@index([userId, category])
+}
+
+model Budget {
+  id           String @id @default(cuid())
+  userId       String
+  category     String
+  monthlyLimit Int
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category])
+}
+
+model SavingsGoal {
+  id         String   @id @default(cuid())
+  userId     String
+  name       String
+  target     Int
+  saved      Int      @default(0)
+  targetDate DateTime
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Scholarship {
+  id       String   @id @default(cuid())
+  userId   String
+  name     String
+  amount   Int
+  deadline DateTime
+  url      String   @default("")
+  status   String   @default("TO_APPLY")
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, deadline])
+}
+
+model Job {
+  id           String @id @default(cuid())
+  userId       String
+  title        String
+  hourlyRate   Int
+  hoursPerWeek Float
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
